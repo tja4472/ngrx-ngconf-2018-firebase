@@ -554,9 +554,9 @@ angular-testing-library@^0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/angular-testing-library/-/angular-testing-library-0.0.2.tgz#588edd381d9f4015b8bbbd8051991c6c618c655e"
 
-angularfire2@5.0.0-rc.10:
-  version "5.0.0-rc.10"
-  resolved "https://registry.yarnpkg.com/angularfire2/-/angularfire2-5.0.0-rc.10.tgz#8220cfa30414dc256482b7173aee664d9855039e"
+angularfire2@5.0.0-rc.11:
+  version "5.0.0-rc.11"
+  resolved "https://registry.yarnpkg.com/angularfire2/-/angularfire2-5.0.0-rc.11.tgz#697c43bf8e74fe5b27afa436e35dad9bae54a744"
 
 ansi-escapes@^3.0.0:
   version "3.1.0"
