@@ -2,6 +2,9 @@
   "name": "ngrx-auth2018",
   "version": "0.0.0",
   "license": "MIT",
+  "repository": {
+    "url": "https://github.com/tja4472/ngrx-ngconf-2018-firebase"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
