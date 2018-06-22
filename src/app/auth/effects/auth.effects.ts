@@ -54,7 +54,16 @@ export class AuthEffects {
   @Effect({ dispatch: false })
   loginRedirect$ = this.actions$
     .ofType<LoginSuccess>(AuthActionTypes.LoginSuccess)
-    .pipe(tap(() => this.router.navigate(['/books'])));
+    .pipe(
+      tap(() => {
+        // this.router.navigate(['/books']);
+        if (this.authService.redirectUrl === '') {
+          this.router.navigate(['/books']);
+        } else {
+          this.router.navigate([this.authService.redirectUrl]);
+        }
+      }),
+    );
 
   @Effect()
   logoutConfirmation$ = this.actions$

@@ -14,6 +14,8 @@ const mockUser = { name: 'Brandon', email: 'brandon@ngrx.io' };
   providedIn: 'root',
 })
 export class AuthService {
+  public redirectUrl = '';
+
   private loggedIn = false;
 
   public authStateReplaySubject = new ReplaySubject<UserModel | null>();
