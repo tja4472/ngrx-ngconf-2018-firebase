@@ -21,6 +21,14 @@ export const MY_FIREBASE_APP_CONFIG = {
 };
 ```
 
+## auth.service.ts
+
+Username and password hardcoded.
+
+```ts
+this.afAuth.auth.signInWithEmailAndPassword('a.a@a.com', 'password');
+```
+
 ## Development server
 
 Run `npm start` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
