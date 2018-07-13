@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { UserModel } from '@app/auth/models/user.model';
-import { from, Observable, ReplaySubject } from 'rxjs';
-import { filter, map, take } from 'rxjs/operators';
+import { from, Observable, ReplaySubject, of, merge } from 'rxjs';
+import { filter, map, take, share, exhaustMap, switchMap } from 'rxjs/operators';
 
 import { Authenticate } from '../models/authentication.model';
 
@@ -16,56 +16,100 @@ const mockUser = { name: 'Brandon', email: 'brandon@ngrx.io' };
 export class AuthService {
   public redirectUrl = '';
 
-  private loggedIn = false;
+  private signedIn$: Observable<UserModel>;
+  private signedInSignedOut$: Observable<UserModel>;
+  private signedOut$: Observable<UserModel>;
 
-  public authStateReplaySubject = new ReplaySubject<UserModel | null>();
+  constructor(
+    private readonly afAuth: AngularFireAuth,
+    // private readonly userDataService: UserDataService
+  ) {
+    const firebaseAuth$ = this.afAuth.authState.pipe(
+      share()
+    );
 
-  authenticated$: Observable<boolean>;
-  uid$: Observable<string>;
+    this.signedIn$ = firebaseAuth$.pipe(
+      filter((firebaseUser) => !!firebaseUser),
+      exhaustMap(() => {
+        const user: UserModel = {
+          email: mockUser.email,
+          name: mockUser.name,
+        };
 
-  constructor(private readonly afAuth: AngularFireAuth) {
-    //
-    this.afAuth.authState.subscribe((firebaseUser) => {
-      this.loggedIn = !!firebaseUser;
-
-      if (this.loggedIn) {
-        this.authStateReplaySubject.next(mockUser);
-      } else {
-        this.authStateReplaySubject.next(null);
+        return of(user);
       }
-    });
+      /*
+        from(this.userDataService.getUserData(firebaseUser.uid)).pipe(
+          map((userData) => ({ firebaseUser, userData })),
+          map((x) => {
+            const user: UserModel = {
+              id: x.firebaseUser.uid,
+              email: x.firebaseUser.email,
+              name: x.firebaseUser.displayName,
+              todoListId: x.userData.todoListId,
+            };
+
+            return user;
+          })
+        */
+        )
+    );
+
+    this.signedOut$ = firebaseAuth$.pipe(
+      filter((firebaseUser) => !!!firebaseUser),
+      map(() => null)
+    );
+
+    this.signedInSignedOut$ = merge(this.signedIn$, this.signedOut$);
   }
 
   autoLogin(): Observable<UserModel> {
     //
-    return this.authStateReplaySubject.asObservable().pipe(take(1));
+    return this.signedInSignedOut$.pipe(take(1));
   }
 
   login(auth: Authenticate): Observable<UserModel> {
     //
-    this.afAuth.auth.signInWithEmailAndPassword('a.a@a.com', 'password');
-
-    /*
-    if (auth.username !== 'ngconf') {
-      return throwError('Invalid username or password');
-    }
-    */
-
-    return this.authStateReplaySubject.asObservable().pipe(
-      filter((user) => !!user), // user is not null.
-      take(1),
+    const result$ = from(
+      // this.afAuth.auth.signInWithEmailAndPassword(auth.username, auth.password)
+      this.afAuth.auth.signInWithEmailAndPassword('a.a@a.com', 'password')
+    ).pipe(
+      switchMap(() => {
+        return this.signedIn$.pipe(take(1));
+      })
     );
+
+    return result$;
   }
 
-  logout(): Observable<boolean> {
+  public logout(): Observable<boolean> {
     //
-    this.afAuth.auth.signOut();
-
-    return this.authStateReplaySubject.asObservable().pipe(
-      filter((user) => !!!user), // user is null.
-      take(1),
-      map(() => true),
+    const result$ = from(this.afAuth.auth.signOut()).pipe(
+      switchMap(() => {
+        return this.signedOut$.pipe(
+          take(1),
+          map(() => true)
+        );
+      })
     );
+
+    return result$;
+  }
+
+  public signUp(auth: Authenticate) {
+    //
+    const result$ = from(
+      this.afAuth.auth.createUserWithEmailAndPassword(
+        auth.username,
+        auth.password
+      )
+    ).pipe(
+      switchMap(() => {
+        return this.signedIn$.pipe(take(1));
+      })
+    );
+
+    return result$;
   }
 
   /*
